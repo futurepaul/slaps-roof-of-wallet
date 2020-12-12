@@ -10,5 +10,7 @@ pub fn build_ui() -> impl Widget<AppState> {
 
     let address_button = Button::new("Print new address").on_click(AppState::print_address);
 
-    Flex::column().with_child(test_label).with_child(address_button)
+    let print_balance = Button::new("Print current balance").on_click(AppState::print_balance);
+
+    Flex::column().with_child(test_label).with_child(address_button).with_child(print_balance)
 }

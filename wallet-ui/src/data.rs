@@ -17,4 +17,8 @@ impl AppState {
     pub fn print_address(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
         data.core.print_address();
     }
+
+    pub fn print_balance(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        data.core.print_balance();
+    }
 }
