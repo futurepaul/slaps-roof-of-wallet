@@ -1,0 +1,10 @@
+[ ] create a wallet
+[ ] generate an address from our wallet
+[ ] send fake bitcoin to address using nigiri
+[ ] display balance of our wallet
+
+
+
+[ ] send a transaction with our wallet
+  [ ] 
+[ ] receive a transaction

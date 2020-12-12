@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+  "wallet-core",
+  "wallet-ui",
+]

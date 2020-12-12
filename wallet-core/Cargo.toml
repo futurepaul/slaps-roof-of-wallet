@@ -1,0 +1,11 @@
+[package]
+name = "wallet-core"
+version = "0.1.0"
+authors = ["Paul Miller <paul@pauljmiller.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bdk = { git="https://github.com/bitcoindevkit/bdk", rev="010b7ee" }
+bitcoin = "0.25.2"
