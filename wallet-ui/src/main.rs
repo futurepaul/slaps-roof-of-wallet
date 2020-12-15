@@ -6,14 +6,25 @@ use data::AppState;
 mod view;
 use view::build_ui;
 
+mod selectors;
+
+mod delegate;
+
 pub fn main() {
     let main_window = WindowDesc::new(build_ui)
         .title("Slaps Roof Of Wallet")
         .window_size((400.0, 400.0));
 
-    let initial_state = AppState::new();
+    let app = AppLauncher::with_window(main_window);
 
-    AppLauncher::with_window(main_window)
-        .launch(initial_state)
+    let sink = app.get_external_handle();
+
+    let initial_state = AppState::new(sink);
+
+    initial_state.start_get_balance_loop();
+
+    let delegate = delegate::Delegate { }; 
+    
+    app.delegate(delegate).launch(initial_state)
         .expect("Failed to launch application");
 }

@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 wallet-core = { path = "../wallet-core" }
 druid = { git = "https://github.com/linebender/druid", rev="65eb306", features=["im"] }
+async-std = "1.8.0"

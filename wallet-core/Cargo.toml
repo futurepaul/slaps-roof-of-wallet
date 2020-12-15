@@ -8,4 +8,5 @@ edition = "2018"
 
 [dependencies]
 bdk = { git="https://github.com/bitcoindevkit/bdk", rev="010b7ee" }
-bitcoin = "0.25.2"
+hwi = { git="https://github.com/bitcoindevkit/rust-hwi/", rev="8975a5e" }
+base64 = "0.13.0"
