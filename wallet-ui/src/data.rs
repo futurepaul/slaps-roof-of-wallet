@@ -33,6 +33,12 @@ impl UIDevice {
     pub fn print_xpub(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
         println!("xpub: {}", data.device.get_xpub());
     }
+
+    pub fn create_wallet(ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        let hwi_device = data.device.clone();
+        ctx.submit_command(selectors::CREATE_WALLET.with(hwi_device));
+    }
+
 }
 
 #[derive(Clone, Data, Lens)]
@@ -98,6 +104,15 @@ impl AppState {
             core.create_and_print_tx(address);
         });
         
+    }
+
+    pub fn print_descriptors(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        data.wallet.print_descriptors();
+    }
+
+    pub fn create_wallet_from_device(&mut self, device: Arc<SlapsDevice>) {
+        self.wallet = Arc::new(SlapsWallet::new_from_hw_wallet(&device.clone()));
+        self.start_get_balance_loop();
     }
 
     pub fn start_get_balance_loop(&self) {

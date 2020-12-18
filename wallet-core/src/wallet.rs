@@ -2,18 +2,44 @@ use std::str::FromStr;
 
 use base64;
 
-use bdk::blockchain::{noop_progress, ElectrumBlockchain};
+use bdk::{bitcoin::util::bip32::{DerivationPath, ExtendedPubKey, Fingerprint}, blockchain::{noop_progress, ElectrumBlockchain}, descriptor::{Descriptor, MiniscriptKey, get_checksum}, miniscript::DescriptorPublicKey};
 use bdk::database::MemoryDatabase;
 use bdk::electrum_client::Client;
 use bdk::{FeeRate, TxBuilder, Wallet};
 
 use bdk::bitcoin::{consensus::serialize, Address, Network};
+use hwi::HWIDevice;
 
-use crate::ArcStr;
+use crate::{ArcStr, SlapsDevice};
 
 pub struct SlapsWallet {
     descriptor: ArcStr,
     change_descriptor: ArcStr,
+}
+
+fn create_descriptor(derivation_path: DerivationPath, fingerprint: Fingerprint, xpub: ExtendedPubKey, index: Option<u32>, change: bool, checksum: bool) -> Result<Descriptor<DescriptorPublicKey>, bdk::miniscript::Error> {
+
+    let origin_prefix = derivation_path
+            .to_string()
+            .replace("m", &fingerprint.to_string());
+
+    let descriptor_part = format!("[{}]{}", origin_prefix, xpub.to_string());
+
+    let index_str = match index {
+            Some(index) => index.to_string(),
+            None => String::from("*"),
+        };
+
+    let inner = format!("{}/{}/{}", descriptor_part, change as u32, index_str);
+
+    let mut descriptor = format!("wpkh({})", inner);
+
+    if let true = checksum {
+            descriptor = format!("{}#{}", descriptor, get_checksum(&descriptor).unwrap());
+        };
+
+    Descriptor::from_str(&descriptor)
+
 }
 
 impl SlapsWallet {
@@ -25,6 +51,31 @@ impl SlapsWallet {
             descriptor,
             change_descriptor,
         }
+    }
+
+    pub fn new_from_hw_wallet(hw_wallet: &SlapsDevice) -> Self {
+        let hw_wallet = hw_wallet.get_device();
+        let is_testnet = true;
+        let derivation_path = DerivationPath::from_str("m/84h/1h/0h").expect("Failed to create derivation path");
+        let fingerprint = hw_wallet.fingerprint;
+        let xpub = hw_wallet.get_xpub(&derivation_path, is_testnet).unwrap().xpub;
+        let index = None;
+        let change = false;
+        let checksum = false;
+        let descriptor = create_descriptor(derivation_path.clone(), fingerprint, xpub, index, change, checksum).expect("Failed to create descriptor");      
+
+        let change = true;
+        let change_descriptor = create_descriptor(derivation_path.clone(), fingerprint, xpub, index, change, checksum).expect("Failed to create change descriptor");      
+
+        Self {
+            descriptor: descriptor.to_string().into(),
+            change_descriptor: change_descriptor.to_string().into(),
+        }
+    }
+
+    pub fn print_descriptors(&self) {
+        println!("Descriptor: {}", self.descriptor);
+        println!("Change Descriptor: {}", self.change_descriptor);
     }
 
     // Create an ephemeral wallet and sync it to the blockchain

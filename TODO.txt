@@ -3,8 +3,10 @@
 [x] send fake bitcoin to address using nigiri
 [x] "display" balance of our wallet
 
+[x] list hardware wallets
 
+[x] create a wallet using a hardware wallet
 
 [ ] send a transaction with our wallet
   [ ] 
-[ ] receive a transaction
+[x] receive a transaction

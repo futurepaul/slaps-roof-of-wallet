@@ -59,9 +59,8 @@ impl SlapsDevice {
 
     }
 
-    pub fn get_descriptor(&self) -> ArcStr {
-        Descriptor::new
-
+    pub fn get_device(&self) -> HWIDevice {
+        self.hwi_device.clone()
     }
 }
 

@@ -11,7 +11,8 @@ fn single_device() -> impl Widget<UIDevice> {
     let fingerprint = Label::new(UIDevice::display_fingerprint);
     let path = Label::new(UIDevice::display_path);
     let print_xpub_button = Button::new("Print Xpub").on_click(UIDevice::print_xpub);
-    Flex::column().with_child(model).with_child(fingerprint).with_child(path).with_child(print_xpub_button)
+    let create_wallet_from_device = Button::new("Create wallet").on_click(UIDevice::create_wallet);
+    Flex::column().with_child(model).with_child(fingerprint).with_child(path).with_child(print_xpub_button).with_child(create_wallet_from_device)
 }
 
 fn devices() -> impl Widget<Vector<UIDevice>> {
@@ -40,6 +41,8 @@ pub fn build_ui() -> impl Widget<AppState> {
 
     let refresh_devices_button = Button::new("Refresh devices").on_click(AppState::refresh_devices);
 
+    let print_descriptors = Button::new("Print descriptors").on_click(AppState::print_descriptors);
+
     let device_list = devices().lens(AppState::ui_device_list);
 
     Flex::column()
@@ -51,5 +54,6 @@ pub fn build_ui() -> impl Widget<AppState> {
         .with_child(paste_send_button)
         .with_child(create_tx_button)
         .with_child(refresh_devices_button)
+        .with_child(print_descriptors)
         .with_child(device_list)
 }
