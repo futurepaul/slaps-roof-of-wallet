@@ -21,8 +21,6 @@ pub fn main() {
 
     let initial_state = AppState::new(sink);
 
-    initial_state.start_get_balance_loop();
-
     let delegate = delegate::Delegate { }; 
     
     app.delegate(delegate).launch(initial_state)

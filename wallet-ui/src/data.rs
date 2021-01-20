@@ -41,6 +41,14 @@ impl UIDevice {
 
 }
 
+#[derive(Clone, Copy, PartialEq, Data)]
+pub enum Route {
+    Setup,
+    Transactions,
+    Send,
+    Receive
+}
+
 #[derive(Clone, Data, Lens)]
 pub struct AppState {
     wallet: Arc<SlapsWallet>,
@@ -50,18 +58,20 @@ pub struct AppState {
     pub balance: ArcStr,
     event_sink: Arc<ExtEventSink>,
     send_to_address: String,
+    pub active_route: Route
 }
 
 impl AppState {
     pub fn new(sink: ExtEventSink) -> Self {
         Self {
-            wallet: Arc::new(SlapsWallet::new_demo()),
+            wallet: Arc::new(SlapsWallet::new_empty()),
             devices: Arc::new(SlapsDevices::new()),
             ui_device_list: vector![],
             address: "".into(),
             balance: "0 satoshis".into(),
             event_sink: Arc::new(sink),
-            send_to_address: String::new()
+            send_to_address: String::new(),
+            active_route: Route::Setup
         }
     }
 
@@ -100,9 +110,11 @@ impl AppState {
         let core = data.wallet.clone();
         let address = data.send_to_address.clone();
         // let sink = data.event_sink.clone();
-        task::spawn(async move {
-            core.create_and_print_tx(address);
-        });
+        let fingerprint = data.wallet.signer_fingerprint.expect("No signer fingerprint exists!");
+        let device = data.devices.get_device_by_fingerprint(fingerprint).get_device();
+        core.create_and_print_tx(address, device);
+        //task::spawn(async move {
+        //});
         
     }
 
@@ -110,21 +122,31 @@ impl AppState {
         data.wallet.print_descriptors();
     }
 
-    pub fn create_wallet_from_device(&mut self, device: Arc<SlapsDevice>) {
-        self.wallet = Arc::new(SlapsWallet::new_from_hw_wallet(&device.clone()));
-        self.start_get_balance_loop();
+    pub fn go_to_send_route(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        data.active_route = Route::Send;
     }
 
-    pub fn start_get_balance_loop(&self) {
-        let core = self.wallet.clone();
-        let sink = self.event_sink.clone();
+    pub fn go_to_receive_route(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        data.active_route = Route::Receive;
+    }
+
+    pub fn go_to_transactions_route(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        data.active_route = Route::Transactions;
+    }
+
+    pub fn create_wallet_from_device(&mut self, device: Arc<SlapsDevice>) {
+        self.wallet = Arc::new(SlapsWallet::new_from_hw_wallet(&device.clone()));
+        self.active_route = Route::Transactions;
+    }
+
+    pub fn get_balance(_ctx: &mut EventCtx, data: &mut Self, _env: &Env) {
+        let core = data.wallet.clone();
+        let sink = data.event_sink.clone();
         task::spawn(async move {
-            loop {
                 let balance = core.get_balance();
                 sink.submit_command(selectors::UPDATE_BALANCE, balance, Target::Auto)
                     .expect("Failed to send UPDATE_BALANCE command");
-                task::sleep(Duration::from_secs(5)).await;
             }
-        });
+        );
     }
 }
